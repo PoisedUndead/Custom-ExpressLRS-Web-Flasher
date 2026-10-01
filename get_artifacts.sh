@@ -25,14 +25,12 @@ for HASH in `cat index.json | jq '.tags,.branches | values[]' | sed 's/\"//g' | 
 done
 
 # Download the published hardware targets into the `firmware` directory
-mkdir hardware
-cd hardware
-curl -L -o hardware.zip https://poisedundead.github.io/Custom-ExpressLRS/ExpressLRS/hardware.zip
-unzip -q hardware.zip
-rm hardware.zip
+# Extract the hardware targets directly from the downloaded master firmware
+MASTER=`grep '"master"' index.json | sed 's/.*: "\([^"]*\)".*/\1/'`
+cp -r $MASTER/hardware .
 
 # Download backpack firmware, for each tagged version
-cd ../..
+cd ..
 mkdir -p backpack
 cd backpack
 curl -L -o index.json https://artifactory.expresslrs.org/Backpack/index.json
