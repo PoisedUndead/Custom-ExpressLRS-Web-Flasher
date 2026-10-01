@@ -9,12 +9,12 @@ rm -rf firmware backpack
 # Download main ELRS firmware, for each tagged version
 mkdir -p firmware
 cd firmware
-curl -L -o index.json https://artifactory.expresslrs.org/ExpressLRS/index.json
+curl -L -o index.json https://poisedundead.github.io/Custom-ExpressLRS/ExpressLRS/index.json
 LATEST_RC_TAG=$(jq -r '.tags | keys[] | select(test("-RC[0-9]+$"))' index.json | sort -V | tail -n1)
 jq --arg latest_rc "$LATEST_RC_TAG" '.tags |= with_entries(select((.key | test("-RC[0-9]+$") | not) or .key == $latest_rc))' index.json > index.filtered.json
 mv index.filtered.json index.json
 for HASH in `cat index.json | jq '.tags,.branches | values[]' | sed 's/\"//g' | sort -ru` ; do
-    curl -L -o firmware.zip "https://artifactory.expresslrs.org/ExpressLRS/$HASH/firmware.zip"
+    curl -L -o firmware.zip "https://poisedundead.github.io/Custom-ExpressLRS/ExpressLRS/$HASH/firmware.zip"
     mkdir $HASH
     cd $HASH
     unzip -q ../firmware.zip
@@ -27,7 +27,7 @@ done
 # Download the published hardware targets into the `firmware` directory
 mkdir hardware
 cd hardware
-curl -L -o hardware.zip https://artifactory.expresslrs.org/ExpressLRS/hardware.zip
+curl -L -o hardware.zip https://poisedundead.github.io/Custom-ExpressLRS/ExpressLRS/hardware.zip
 unzip -q hardware.zip
 rm hardware.zip
 
