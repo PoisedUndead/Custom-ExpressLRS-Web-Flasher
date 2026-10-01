@@ -50,9 +50,9 @@ function updateVersions() {
     } else {
       let first = true;
       Object.keys(firmware.value.tags).sort(compareSemanticVersions).reverse().forEach((key) => {
-        if (key.indexOf('-') === -1 || first) {
+        if (key.indexOf('-') === -1 || key.indexOf('CustomLabs') !== -1 || first) {
           versions.value.push({title: key, value: firmware.value.tags[key]})
-          if (!store.version && key.indexOf('-') === -1) store.version = firmware.value.tags[key]
+          if (!store.version && (key.indexOf('-') === -1 || key.indexOf('CustomLabs') !== -1)) store.version = firmware.value.tags[key]
           first = false
         }
       })
