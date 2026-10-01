@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "(python fetch_artifacts.py || python3 fetch_artifacts.py) && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
