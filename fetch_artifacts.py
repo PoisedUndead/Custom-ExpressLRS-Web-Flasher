@@ -18,7 +18,9 @@ for hash_val in set(list(data['tags'].values()) + list(data['branches'].values()
     zip_url = f'https://poisedundead.github.io/Custom-ExpressLRS/ExpressLRS/{hash_val}/firmware.zip'
     try:
         urllib.request.urlretrieve(zip_url, 'firmware.zip')
-        os.system('unzip -q firmware.zip -d extracted_temp')
+        import zipfile
+        with zipfile.ZipFile('firmware.zip', 'r') as zip_ref:
+            zip_ref.extractall('extracted_temp')
         
         for item in os.listdir('extracted_temp/firmware'):
             shutil.move(os.path.join('extracted_temp/firmware', item), hash_val)
@@ -53,7 +55,9 @@ try:
         zip_url = f'https://artifactory.expresslrs.org/Backpack/{hash_val}/firmware.zip'
         try:
             urllib.request.urlretrieve(zip_url, 'firmware.zip')
-            os.system('unzip -q firmware.zip -d extracted_temp')
+            import zipfile
+            with zipfile.ZipFile('firmware.zip', 'r') as zip_ref:
+                zip_ref.extractall('extracted_temp')
             for item in os.listdir('extracted_temp/firmware'):
                 shutil.move(os.path.join('extracted_temp/firmware', item), hash_val)
             shutil.rmtree('extracted_temp')

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "(python fetch_artifacts.py || python3 fetch_artifacts.py) && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -16,6 +16,7 @@
     "esptool-js": "^0.6.0",
     "file-saver": "^2.0.5",
     "pako": "^3.0.1",
+    "puppeteer": "^25.12.0",
     "roboto-fontface": "*",
     "vue": "^3.5.39",
     "vue-localstorage": "^0.6.2",
