@@ -70,6 +70,7 @@ function updateVersions() {
       });
   }
 }
+}
 
 watch(firmware, updateVersions)
 watch(flashBranch, updateVersions)
