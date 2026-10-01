@@ -48,15 +48,26 @@ function updateVersions() {
       })
       versions.value = versions.value.sort((a, b) => a.title.localeCompare(b.title))
     } else {
-      let first = true;
-      Object.keys(firmware.value.tags).sort(compareSemanticVersions).reverse().forEach((key) => {
-        if ((key.indexOf('-') === -1 || key.indexOf('CustomLabs') !== -1 || first) && !versions.value.some(v => v.value === firmware.value.tags[key])) {
-          versions.value.push({title: key, value: firmware.value.tags[key]})
-          if (!store.version && (key.indexOf('-') === -1 || key.indexOf('CustomLabs') !== -1)) store.version = firmware.value.tags[key]
-          first = false
+      let deduplicated = {};
+      Object.keys(firmware.value.tags).forEach(k => {
+        const h = firmware.value.tags[k];
+        if(!deduplicated[h] || (k.includes('CustomLabs') && !deduplicated[h].includes('CustomLabs'))) {
+            deduplicated[h] = k;
+        } else if (k.includes('CustomLabs') && deduplicated[h].includes('CustomLabs') && compareSemanticVersions(k, deduplicated[h]) > 0) {
+            deduplicated[h] = k;
+        } else if (!k.includes('CustomLabs') && !deduplicated[h].includes('CustomLabs') && compareSemanticVersions(k, deduplicated[h]) > 0) {
+            deduplicated[h] = k;
         }
-      })
-    }
+      });
+      
+      let first = true;
+      Object.values(deduplicated).sort(compareSemanticVersions).reverse().forEach((key) => {
+        if (key.indexOf('-') === -1 || key.indexOf('CustomLabs') !== -1 || first) {
+          versions.value.push({title: key, value: firmware.value.tags[key]});
+          if (!store.version && (key.indexOf('-') === -1 || key.indexOf('CustomLabs') !== -1)) store.version = firmware.value.tags[key];
+          first = false;
+        }
+      });
   }
 }
 
