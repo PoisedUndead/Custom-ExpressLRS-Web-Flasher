@@ -1,7 +1,33 @@
-import urllib.request, json, os, shutil
+import urllib.request, json, os, shutil, zipfile
 import ssl
 ssl._create_default_https_context = ssl._create_unverified_context
 
+# Remember the project root so we can always navigate back
+PROJECT_ROOT = os.getcwd()
+
+
+def extract_firmware(zip_url, hash_val):
+    """Download and extract firmware.zip into the hash directory, idempotently."""
+    urllib.request.urlretrieve(zip_url, 'firmware.zip')
+    with zipfile.ZipFile('firmware.zip', 'r') as zip_ref:
+        zip_ref.extractall('extracted_temp')
+
+    for item in os.listdir('extracted_temp/firmware'):
+        src = os.path.join('extracted_temp/firmware', item)
+        dst = os.path.join(hash_val, item)
+        # Remove existing destination to make re-runs idempotent
+        if os.path.exists(dst):
+            if os.path.isdir(dst):
+                shutil.rmtree(dst)
+            else:
+                os.remove(dst)
+        shutil.move(src, hash_val)
+
+    shutil.rmtree('extracted_temp')
+    os.remove('firmware.zip')
+
+
+# ── Firmware ──────────────────────────────────────────────────────────────────
 os.makedirs('public/assets/firmware', exist_ok=True)
 os.chdir('public/assets/firmware')
 
@@ -17,18 +43,14 @@ for hash_val in set(list(data['tags'].values()) + list(data['branches'].values()
         os.makedirs(hash_val)
     zip_url = f'https://poisedundead.github.io/Custom-ExpressLRS/ExpressLRS/{hash_val}/firmware.zip'
     try:
-        urllib.request.urlretrieve(zip_url, 'firmware.zip')
-        import zipfile
-        with zipfile.ZipFile('firmware.zip', 'r') as zip_ref:
-            zip_ref.extractall('extracted_temp')
-        
-        for item in os.listdir('extracted_temp/firmware'):
-            shutil.move(os.path.join('extracted_temp/firmware', item), hash_val)
-            
-        shutil.rmtree('extracted_temp')
-        os.remove('firmware.zip')
+        extract_firmware(zip_url, hash_val)
     except Exception as e:
         print(f'Failed for {hash_val}: {e}')
+        # Clean up partial state
+        if os.path.exists('extracted_temp'):
+            shutil.rmtree('extracted_temp')
+        if os.path.exists('firmware.zip'):
+            os.remove('firmware.zip')
 
 master_hash = data['branches']['master']
 if os.path.exists(os.path.join(master_hash, 'hardware')):
@@ -39,7 +61,9 @@ if os.path.exists(os.path.join(master_hash, 'hardware')):
 print('Firmware artifacts fetched successfully!')
 
 
-os.chdir('../../')
+# ── Backpack ──────────────────────────────────────────────────────────────────
+# Return to project root before navigating to backpack directory
+os.chdir(PROJECT_ROOT)
 os.makedirs('public/assets/backpack', exist_ok=True)
 os.chdir('public/assets/backpack')
 
@@ -54,23 +78,19 @@ try:
             os.makedirs(hash_val)
         zip_url = f'https://artifactory.expresslrs.org/Backpack/{hash_val}/firmware.zip'
         try:
-            urllib.request.urlretrieve(zip_url, 'firmware.zip')
-            import zipfile
-            with zipfile.ZipFile('firmware.zip', 'r') as zip_ref:
-                zip_ref.extractall('extracted_temp')
-            for item in os.listdir('extracted_temp/firmware'):
-                shutil.move(os.path.join('extracted_temp/firmware', item), hash_val)
-            shutil.rmtree('extracted_temp')
-            os.remove('firmware.zip')
-        except:
-            pass
+            extract_firmware(zip_url, hash_val)
+        except Exception as e:
+            print(f'Backpack failed for {hash_val}: {e}')
+            if os.path.exists('extracted_temp'):
+                shutil.rmtree('extracted_temp')
+            if os.path.exists('firmware.zip'):
+                os.remove('firmware.zip')
     master_hash = data['branches']['master']
     if os.path.exists(os.path.join(master_hash, 'hardware')):
         if os.path.exists('hardware'):
             shutil.rmtree('hardware')
         shutil.copytree(os.path.join(master_hash, 'hardware'), 'hardware')
-except:
-    pass
+except Exception as e:
+    print(f'Backpack fetch skipped: {e}')
 
 print('Backpack artifacts fetched successfully!')
-
