@@ -52,11 +52,13 @@ for hash_val in set(list(data['tags'].values()) + list(data['branches'].values()
         if os.path.exists('firmware.zip'):
             os.remove('firmware.zip')
 
-master_hash = data['branches']['master']
-if os.path.exists(os.path.join(master_hash, 'hardware')):
+master_hash = data['branches'].get('master')
+if master_hash and os.path.exists(os.path.join(master_hash, 'hardware')):
     if os.path.exists('hardware'):
         shutil.rmtree('hardware')
     shutil.copytree(os.path.join(master_hash, 'hardware'), 'hardware')
+elif not master_hash:
+    print('Warning: master branch not found in index.json, skipping hardware copy')
 
 print('Firmware artifacts fetched successfully!')
 
